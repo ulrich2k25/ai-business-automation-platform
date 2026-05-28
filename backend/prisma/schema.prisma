@@ -1,0 +1,63 @@
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+}
+
+model Company {
+  id        String   @id @default(cuid())
+  name      String
+  createdAt DateTime @default(now())
+
+  users     User[]
+  documents Document[]
+}
+
+model User {
+  id        String   @id @default(cuid())
+  email     String   @unique
+  password  String
+  role      String
+  createdAt DateTime @default(now())
+
+  companyId String
+  company   Company @relation(fields: [companyId], references: [id])
+
+  documents Document[]
+}
+
+model Document {
+  id            String   @id @default(cuid())
+  fileName      String
+  originalText  String?
+  extractedData Json?
+  status        String
+  createdAt     DateTime @default(now())
+
+  companyId String?
+  company   Company? @relation(fields: [companyId], references: [id])
+
+  uploadedById String?
+  uploadedBy   User? @relation(fields: [uploadedById], references: [id])
+
+  invoice Invoice?
+}
+
+model Invoice {
+  id            String   @id @default(cuid())
+
+  invoiceNumber String?
+  supplier      String?
+  amount        Float?
+  currency      String?
+  vatAmount     Float?
+  invoiceDate   DateTime?
+
+  status        String   @default("PENDING")
+  createdAt     DateTime @default(now())
+
+  documentId String?   @unique
+  document   Document? @relation(fields: [documentId], references: [id])
+}
