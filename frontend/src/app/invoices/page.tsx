@@ -2,6 +2,9 @@
 
 import { useEffect, useMemo, useState } from "react";
 
+const API_URL =
+  "https://ai-business-automation-platform.onrender.com";
+
 type Invoice = {
   id: string;
   invoiceNumber: string | null;
@@ -29,7 +32,7 @@ export default function InvoicesPage() {
       return;
     }
 
-    fetch("http://localhost:3002/invoices", {
+    fetch(`${API_URL}/invoices`,  {
       headers: {
         Authorization: `Bearer ${token}`,
       },

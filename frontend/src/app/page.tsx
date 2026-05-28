@@ -2,7 +2,7 @@
 
 import { useEffect, useRef, useState } from "react";
 
-const API_URL = "http://localhost:3002";
+const API_URL = "https://ai-business-automation-platform.onrender.com";
 
 const translations = {
   fr: {
