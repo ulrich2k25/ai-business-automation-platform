@@ -375,10 +375,12 @@ export default function HomePage() {
               </button>
 
               <button
-                onClick={() => loadDocuments()}
-                className="px-8 py-4 rounded-2xl border border-white/20 hover:bg-white/10 transition"
+                onClick={() => {
+                  window.location.href = "/invoices";
+                }}
+                className="px-8 py-4 rounded-2xl border border-cyan-400/30 text-cyan-300 hover:bg-cyan-500/10 transition font-semibold"
               >
-                {t.sync}
+                Ouvrir ERP
               </button>
             </div>
 
