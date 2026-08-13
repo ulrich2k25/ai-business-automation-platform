@@ -22,12 +22,29 @@ const translations = {
     documents: "Documents",
     analyzed: "Analysés IA",
     secure: "Workspace sécurisé",
+
     loginSubtitle: "Connectez-vous pour accéder à votre espace IA.",
+    registerSubtitle: "Créez un compte pour accéder à votre espace IA.",
+
     email: "Email",
     password: "Mot de passe",
+
     signin: "Connexion",
     connecting: "Connexion...",
+
+    createAccount: "Créer un compte",
+    creatingAccount: "Création du compte...",
+
+    newHere: "Nouveau ici ?",
+    createAccountLink: "Créer un compte",
+
+    alreadyAccount: "Vous avez déjà un compte ?",
+    signInLink: "Se connecter",
+
+    accountCreated:
+      "Compte créé avec succès. Vous pouvez maintenant vous connecter.",
   },
+
   en: {
     platform: "AI Business Automation ERP",
     subtitle: "Automate your PDF workflows with AI-powered extraction.",
@@ -45,12 +62,28 @@ const translations = {
     documents: "Documents",
     analyzed: "AI Processed",
     secure: "Secure Workspace",
+
     loginSubtitle: "Sign in to access your AI workspace.",
+    registerSubtitle: "Create an account to access your AI workspace.",
+
     email: "Email",
     password: "Password",
+
     signin: "Sign In",
     connecting: "Connecting...",
+
+    createAccount: "Create Account",
+    creatingAccount: "Creating account...",
+
+    newHere: "New here?",
+    createAccountLink: "Create an account",
+
+    alreadyAccount: "Already have an account?",
+    signInLink: "Sign in",
+
+    accountCreated: "Account created successfully. You can now sign in.",
   },
+
   de: {
     platform: "AI Business Automation ERP",
     subtitle: "Automatisieren Sie Ihre PDF-Workflows mit KI.",
@@ -68,11 +101,28 @@ const translations = {
     documents: "Dokumente",
     analyzed: "KI verarbeitet",
     secure: "Sicherer Workspace",
+
     loginSubtitle: "Melden Sie sich an, um auf Ihren KI-Workspace zuzugreifen.",
+    registerSubtitle:
+      "Erstellen Sie ein Konto, um auf Ihren KI-Workspace zuzugreifen.",
+
     email: "E-Mail",
     password: "Passwort",
+
     signin: "Anmelden",
     connecting: "Verbindung...",
+
+    createAccount: "Konto erstellen",
+    creatingAccount: "Konto wird erstellt...",
+
+    newHere: "Neu hier?",
+    createAccountLink: "Konto erstellen",
+
+    alreadyAccount: "Sie haben bereits ein Konto?",
+    signInLink: "Anmelden",
+
+    accountCreated:
+      "Konto erfolgreich erstellt. Sie können sich jetzt anmelden.",
   },
 };
 
@@ -83,10 +133,17 @@ export default function HomePage() {
   const [documents, setDocuments] = useState<any[]>([]);
   const [selectedDocument, setSelectedDocument] = useState<any>(null);
   const [error, setError] = useState("");
+  const [success, setSuccess] = useState("");
+
   const [token, setToken] = useState<string | null>(null);
+
   const [email, setEmail] = useState("test@test.com");
   const [password, setPassword] = useState("password123");
+
+  const [isRegister, setIsRegister] = useState(false);
+
   const [showJson, setShowJson] = useState(false);
+
   const [language, setLanguage] = useState<"fr" | "en" | "de">("fr");
 
   const t = translations[language];
@@ -117,14 +174,21 @@ export default function HomePage() {
 
   async function handleLogin(e: React.FormEvent) {
     e.preventDefault();
+
     setLoading(true);
     setError("");
+    setSuccess("");
 
     try {
       const response = await fetch(`${API_URL}/auth/login`, {
         method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ email, password }),
+        headers: {
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify({
+          email,
+          password,
+        }),
       });
 
       const data = await response.json();
@@ -134,6 +198,7 @@ export default function HomePage() {
       }
 
       localStorage.setItem("token", data.access_token);
+
       setToken(data.access_token);
 
       setTimeout(() => {
@@ -141,6 +206,46 @@ export default function HomePage() {
       }, 100);
     } catch (err: any) {
       setError(err.message || "Error");
+    } finally {
+      setLoading(false);
+    }
+  }
+
+  async function handleRegister(e: React.FormEvent) {
+    e.preventDefault();
+
+    setLoading(true);
+    setError("");
+    setSuccess("");
+
+    try {
+      const response = await fetch(`${API_URL}/auth/register`, {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify({
+          email,
+          password,
+        }),
+      });
+
+      const data = await response.json();
+
+      if (!response.ok) {
+        throw new Error(data.message || "Registration failed");
+      }
+
+      setSuccess(t.accountCreated);
+
+      setPassword("");
+
+      setTimeout(() => {
+        setIsRegister(false);
+        setSuccess("");
+      }, 1500);
+    } catch (err: any) {
+      setError(err.message || "Registration failed");
     } finally {
       setLoading(false);
     }
@@ -171,7 +276,9 @@ export default function HomePage() {
       const list = Array.isArray(data) ? data : [];
 
       setDocuments(list);
+
       setSelectedDocument(list.length > 0 ? list[0] : null);
+
       setError("");
     } catch (err: any) {
       console.error("Documents fetch error:", err);
@@ -182,6 +289,7 @@ export default function HomePage() {
       }
 
       setError(err.message || "Failed to load documents");
+
       setDocuments([]);
       setSelectedDocument(null);
     }
@@ -189,15 +297,19 @@ export default function HomePage() {
 
   async function handleFileUpload(event: React.ChangeEvent<HTMLInputElement>) {
     const file = event.target.files?.[0];
+
     const currentToken = token || localStorage.getItem("token");
 
-    if (!file || !currentToken) return;
+    if (!file || !currentToken) {
+      return;
+    }
 
     setLoading(true);
     setError("");
 
     try {
       const formData = new FormData();
+
       formData.append("file", file);
 
       const response = await fetch(`${API_URL}/documents/upload`, {
@@ -224,6 +336,7 @@ export default function HomePage() {
 
   function logout() {
     localStorage.removeItem("token");
+
     setToken(null);
     setDocuments([]);
     setSelectedDocument(null);
@@ -233,23 +346,29 @@ export default function HomePage() {
     return (
       <main className="min-h-screen bg-[#050816] flex items-center justify-center text-white px-6 relative overflow-hidden">
         <div className="absolute top-[-120px] left-[-120px] w-[420px] h-[420px] bg-cyan-500/20 blur-[140px] rounded-full" />
+
         <div className="absolute bottom-[-120px] right-[-120px] w-[420px] h-[420px] bg-purple-500/20 blur-[140px] rounded-full" />
 
         <div className="relative z-10 w-full max-w-md bg-white/10 backdrop-blur-2xl border border-white/10 rounded-[32px] p-8 shadow-2xl">
           <div className="flex justify-end gap-3 mb-6">
             <button
+              type="button"
               onClick={() => changeLanguage("fr")}
               className="text-sm opacity-70 hover:opacity-100"
             >
               FR
             </button>
+
             <button
+              type="button"
               onClick={() => changeLanguage("en")}
               className="text-sm opacity-70 hover:opacity-100"
             >
               EN
             </button>
+
             <button
+              type="button"
               onClick={() => changeLanguage("de")}
               className="text-sm opacity-70 hover:opacity-100"
             >
@@ -258,13 +377,19 @@ export default function HomePage() {
           </div>
 
           <h1 className="text-4xl font-black mb-3">{t.platform}</h1>
+
           <p className="text-white/60 mb-8 leading-relaxed">
-            {t.loginSubtitle}
+            {isRegister ? t.registerSubtitle : t.loginSubtitle}
           </p>
 
-          <form onSubmit={handleLogin} className="space-y-4">
+          <form
+            onSubmit={isRegister ? handleRegister : handleLogin}
+            className="space-y-4"
+          >
             <input
-              className="w-full p-4 rounded-2xl bg-black/20 border border-white/10 outline-none"
+              type="email"
+              required
+              className="w-full p-4 rounded-2xl bg-black/20 border border-white/10 outline-none focus:border-cyan-400/40 transition"
               placeholder={t.email}
               value={email}
               onChange={(e) => setEmail(e.target.value)}
@@ -272,21 +397,67 @@ export default function HomePage() {
 
             <input
               type="password"
-              className="w-full p-4 rounded-2xl bg-black/20 border border-white/10 outline-none"
+              required
+              minLength={6}
+              className="w-full p-4 rounded-2xl bg-black/20 border border-white/10 outline-none focus:border-cyan-400/40 transition"
               placeholder={t.password}
               value={password}
               onChange={(e) => setPassword(e.target.value)}
             />
 
             <button
+              type="submit"
               disabled={loading}
-              className="w-full p-4 rounded-2xl bg-cyan-400 hover:bg-cyan-300 transition text-black font-bold"
+              className="w-full p-4 rounded-2xl bg-cyan-400 hover:bg-cyan-300 disabled:opacity-50 disabled:cursor-not-allowed transition text-black font-bold"
             >
-              {loading ? t.connecting : t.signin}
+              {loading
+                ? isRegister
+                  ? t.creatingAccount
+                  : t.connecting
+                : isRegister
+                  ? t.createAccount
+                  : t.signin}
             </button>
           </form>
 
           {error && <p className="text-red-300 text-sm mt-4">{error}</p>}
+
+          {success && <p className="text-green-300 text-sm mt-4">{success}</p>}
+
+          <div className="mt-6 text-center text-sm text-white/60">
+            {isRegister ? (
+              <>
+                {t.alreadyAccount}{" "}
+                <button
+                  type="button"
+                  onClick={() => {
+                    setIsRegister(false);
+                    setError("");
+                    setSuccess("");
+                  }}
+                  className="text-cyan-300 hover:text-cyan-200 font-semibold"
+                >
+                  {t.signInLink}
+                </button>
+              </>
+            ) : (
+              <>
+                {t.newHere}{" "}
+                <button
+                  type="button"
+                  onClick={() => {
+                    setIsRegister(true);
+                    setError("");
+                    setSuccess("");
+                    setPassword("");
+                  }}
+                  className="text-cyan-300 hover:text-cyan-200 font-semibold"
+                >
+                  {t.createAccountLink}
+                </button>
+              </>
+            )}
+          </div>
         </div>
       </main>
     );
@@ -295,30 +466,37 @@ export default function HomePage() {
   return (
     <main className="min-h-screen bg-[#050816] text-white relative overflow-hidden">
       <div className="absolute top-[-200px] left-[-100px] w-[500px] h-[500px] bg-cyan-500/20 blur-[180px] rounded-full" />
+
       <div className="absolute bottom-[-200px] right-[-100px] w-[500px] h-[500px] bg-purple-500/20 blur-[180px] rounded-full" />
 
       <section className="relative z-10 max-w-7xl mx-auto px-6 py-10">
         <div className="flex items-center justify-between mb-12">
           <div>
             <h1 className="text-4xl font-black">{t.platform}</h1>
+
             <p className="text-white/50 mt-2">{t.subtitle}</p>
           </div>
 
           <div className="flex items-center gap-4">
             <div className="flex gap-2">
               <button
+                type="button"
                 onClick={() => changeLanguage("fr")}
                 className="text-sm opacity-70 hover:opacity-100"
               >
                 FR
               </button>
+
               <button
+                type="button"
                 onClick={() => changeLanguage("en")}
                 className="text-sm opacity-70 hover:opacity-100"
               >
                 EN
               </button>
+
               <button
+                type="button"
                 onClick={() => changeLanguage("de")}
                 className="text-sm opacity-70 hover:opacity-100"
               >
@@ -327,6 +505,7 @@ export default function HomePage() {
             </div>
 
             <button
+              type="button"
               onClick={logout}
               className="px-5 py-2 rounded-full border border-red-400/30 text-red-300 hover:bg-red-500/10 transition"
             >
@@ -340,11 +519,13 @@ export default function HomePage() {
         <div className="grid md:grid-cols-3 gap-5 mb-10">
           <div className="bg-white/10 border border-white/10 rounded-3xl p-6 backdrop-blur-xl">
             <p className="text-white/50 text-sm mb-2">{t.documents}</p>
+
             <h2 className="text-4xl font-black">{documents.length}</h2>
           </div>
 
           <div className="bg-white/10 border border-white/10 rounded-3xl p-6 backdrop-blur-xl">
             <p className="text-white/50 text-sm mb-2">{t.analyzed}</p>
+
             <h2 className="text-4xl font-black">
               {documents.filter((d) => d.status === "AI_PROCESSED").length}
             </h2>
@@ -352,6 +533,7 @@ export default function HomePage() {
 
           <div className="bg-white/10 border border-white/10 rounded-3xl p-6 backdrop-blur-xl">
             <p className="text-white/50 text-sm mb-2">{t.secure}</p>
+
             <h2 className="text-2xl font-bold text-cyan-300">JWT + AI</h2>
           </div>
         </div>
@@ -368,6 +550,7 @@ export default function HomePage() {
               />
 
               <button
+                type="button"
                 onClick={() => fileInputRef.current?.click()}
                 className="px-8 py-4 rounded-2xl bg-cyan-400 hover:bg-cyan-300 transition text-black font-bold"
               >
@@ -375,6 +558,7 @@ export default function HomePage() {
               </button>
 
               <button
+                type="button"
                 onClick={() => {
                   window.location.href = "/invoices";
                 }}
@@ -392,6 +576,7 @@ export default function HomePage() {
               <div className="space-y-4 max-h-[600px] overflow-auto pr-2">
                 {documents.map((doc) => (
                   <button
+                    type="button"
                     key={doc.id}
                     onClick={() => setSelectedDocument(doc)}
                     className={`w-full text-left p-5 rounded-3xl border transition backdrop-blur-xl ${
@@ -405,6 +590,7 @@ export default function HomePage() {
                         <p className="font-semibold text-lg truncate">
                           {doc.fileName}
                         </p>
+
                         <p className="text-sm text-white/40 mt-2">
                           {doc.extractedData?.document_type || "Unknown"}
                         </p>
@@ -427,6 +613,7 @@ export default function HomePage() {
               <>
                 <div className="flex items-center justify-between mb-6">
                   <h2 className="text-2xl font-bold">{t.result}</h2>
+
                   <div className="px-3 py-1 rounded-full bg-green-500/20 text-green-300 text-sm">
                     {t.active}
                   </div>
@@ -437,10 +624,12 @@ export default function HomePage() {
                     <span className="text-white font-semibold">File:</span>{" "}
                     {selectedDocument.fileName}
                   </p>
+
                   <p>
                     <span className="text-white font-semibold">Status:</span>{" "}
                     {selectedDocument.status}
                   </p>
+
                   <p>
                     <span className="text-white font-semibold">Type:</span>{" "}
                     <span className="text-cyan-300">
@@ -453,6 +642,7 @@ export default function HomePage() {
                 {selectedDocument.extractedData?.summary && (
                   <div className="mb-8">
                     <h3 className="text-xl font-bold mb-3">{t.summary}</h3>
+
                     <div className="bg-black/20 rounded-2xl p-5 leading-relaxed text-white/80">
                       {selectedDocument.extractedData.summary}
                     </div>
@@ -461,7 +651,9 @@ export default function HomePage() {
 
                 <div className="mb-4 flex items-center justify-between">
                   <h3 className="text-xl font-bold">{t.extracted}</h3>
+
                   <button
+                    type="button"
                     onClick={() => setShowJson(!showJson)}
                     className="text-cyan-300 text-sm"
                   >

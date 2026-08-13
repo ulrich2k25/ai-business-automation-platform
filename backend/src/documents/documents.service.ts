@@ -25,7 +25,13 @@ export class DocumentsService {
     });
   }
 
-  async uploadPdf(file: Express.Multer.File) {
+  async uploadPdf(
+    file: any,
+    user: {
+      userId: string;
+      companyId: string;
+    },
+  ) {
     const parser = new PDFParse({
       data: file.buffer,
     });
@@ -38,6 +44,7 @@ export class DocumentsService {
       where: {
         fileName: file.originalname,
         originalText: pdfData.text,
+        companyId: user.companyId,
       },
     });
 
@@ -54,6 +61,8 @@ export class DocumentsService {
         originalText: pdfData.text,
         extractedData: parsedResult,
         status: 'AI_PROCESSED',
+        companyId: user.companyId,
+        uploadedById: user.userId,
       },
     });
 
@@ -114,10 +123,7 @@ export class DocumentsService {
           ),
 
           currency:
-            fields.currency ||
-            fields.Currency ||
-            keyInfo.currency ||
-            null,
+            fields.currency || fields.Currency || keyInfo.currency || null,
 
           vatAmount: cleanAmount(
             fields.vat ||
@@ -135,11 +141,7 @@ export class DocumentsService {
               keyInfo.invoice_date,
           ),
 
-          status:
-            fields.status ||
-            fields.Status ||
-            keyInfo.status ||
-            'PENDING',
+          status: fields.status || fields.Status || keyInfo.status || 'PENDING',
 
           documentId: document.id,
         },
@@ -149,8 +151,11 @@ export class DocumentsService {
     return document;
   }
 
-  findAll() {
+  findAll(user: { companyId: string }) {
     return this.prisma.document.findMany({
+      where: {
+        companyId: user.companyId,
+      },
       orderBy: {
         createdAt: 'desc',
       },

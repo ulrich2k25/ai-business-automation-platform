@@ -1,12 +1,21 @@
-import { Injectable } from '@nestjs/common';
+import {
+  ForbiddenException,
+  Injectable,
+  NotFoundException,
+} from '@nestjs/common';
 import { PrismaService } from '../prisma/prisma.service';
 
 @Injectable()
 export class InvoicesService {
   constructor(private readonly prisma: PrismaService) {}
 
-  findAll() {
+  findAll(user: { companyId: string }) {
     return this.prisma.invoice.findMany({
+      where: {
+        document: {
+          companyId: user.companyId,
+        },
+      },
       orderBy: {
         createdAt: 'desc',
       },
@@ -16,8 +25,8 @@ export class InvoicesService {
     });
   }
 
-  findOne(id: string) {
-    return this.prisma.invoice.findUnique({
+  async findOne(id: string, user: { companyId: string }) {
+    const invoice = await this.prisma.invoice.findUnique({
       where: {
         id,
       },
@@ -25,9 +34,36 @@ export class InvoicesService {
         document: true,
       },
     });
+
+    if (!invoice) {
+      throw new NotFoundException('Invoice not found');
+    }
+
+    if (invoice.document?.companyId !== user.companyId) {
+      throw new ForbiddenException();
+    }
+
+    return invoice;
   }
 
-  updateStatus(id: string, status: string) {
+  async updateStatus(id: string, status: string, user: { companyId: string }) {
+    const invoice = await this.prisma.invoice.findUnique({
+      where: {
+        id,
+      },
+      include: {
+        document: true,
+      },
+    });
+
+    if (!invoice) {
+      throw new NotFoundException('Invoice not found');
+    }
+
+    if (invoice.document?.companyId !== user.companyId) {
+      throw new ForbiddenException();
+    }
+
     return this.prisma.invoice.update({
       where: {
         id,

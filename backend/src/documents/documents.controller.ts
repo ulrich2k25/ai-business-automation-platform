@@ -2,6 +2,7 @@ import {
   Controller,
   Get,
   Post,
+  Req,
   UploadedFile,
   UseGuards,
   UseInterceptors,
@@ -22,12 +23,12 @@ export class DocumentsController {
 
   @Post('upload')
   @UseInterceptors(FileInterceptor('file'))
-  uploadPdf(@UploadedFile() file: Express.Multer.File) {
-    return this.documentsService.uploadPdf(file);
+  uploadPdf(@UploadedFile() file: any, @Req() req: any) {
+    return this.documentsService.uploadPdf(file, req.user);
   }
 
   @Get()
-  findAll() {
-    return this.documentsService.findAll();
+  findAll(@Req() req: any) {
+    return this.documentsService.findAll(req.user);
   }
 }

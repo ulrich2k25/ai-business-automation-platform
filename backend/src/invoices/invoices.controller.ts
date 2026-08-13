@@ -1,9 +1,10 @@
 import {
+  Body,
   Controller,
   Get,
   Param,
   Patch,
-  Body,
+  Req,
   UseGuards,
 } from '@nestjs/common';
 
@@ -16,20 +17,21 @@ export class InvoicesController {
   constructor(private readonly invoicesService: InvoicesService) {}
 
   @Get()
-  findAll() {
-    return this.invoicesService.findAll();
+  findAll(@Req() req: any) {
+    return this.invoicesService.findAll(req.user);
   }
 
   @Get(':id')
-  findOne(@Param('id') id: string) {
-    return this.invoicesService.findOne(id);
+  findOne(@Param('id') id: string, @Req() req: any) {
+    return this.invoicesService.findOne(id, req.user);
   }
 
   @Patch(':id/status')
   updateStatus(
     @Param('id') id: string,
     @Body('status') status: string,
+    @Req() req: any,
   ) {
-    return this.invoicesService.updateStatus(id, status);
+    return this.invoicesService.updateStatus(id, status, req.user);
   }
 }
