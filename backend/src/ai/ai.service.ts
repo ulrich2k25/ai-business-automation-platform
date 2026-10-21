@@ -158,6 +158,7 @@ Required JSON:
 
     const result = JSON.parse(content) as Record<string, unknown>;
     result.jobUrl = sourceUrl;
+    result.source = this.resolveJobSource(sourceUrl);
 
     return result;
   }

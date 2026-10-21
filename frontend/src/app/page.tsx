@@ -2,29 +2,29 @@
 
 import { useEffect, useRef, useState } from "react";
 
-const API_URL = "https://ai-business-automation-platform.onrender.com";
+const API_URL = process.env.NEXT_PUBLIC_API_URL || "https://ai-business-automation-platform.onrender.com";
 
 const translations = {
   fr: {
     platform: "AI Business Automation ERP",
-    subtitle: "Automatisez vos workflows PDF grâce à l’analyse intelligente.",
+    subtitle: "Automatisez vos workflows PDF gr\u00e2ce \u00e0 l\u2019analyse intelligente.",
     upload: "Importer PDF",
     sync: "Synchroniser",
-    logout: "Déconnexion",
+    logout: "D\u00e9connexion",
     history: "Historique des documents",
-    noDocuments: "Aucun document analysé.",
+    noDocuments: "Aucun document analys\u00e9.",
     result: "Analyse IA",
-    summary: "Résumé IA",
-    extracted: "Données structurées",
+    summary: "R\u00e9sum\u00e9 IA",
+    extracted: "Donn\u00e9es structur\u00e9es",
     hide: "Masquer JSON",
     show: "Afficher JSON",
     active: "Actif",
     documents: "Documents",
-    analyzed: "Analysés IA",
-    secure: "Workspace sécurisé",
+    analyzed: "Analys\u00e9s IA",
+    secure: "Workspace s\u00e9curis\u00e9",
 
-    loginSubtitle: "Connectez-vous pour accéder à votre espace IA.",
-    registerSubtitle: "Créez un compte pour accéder à votre espace IA.",
+    loginSubtitle: "Connectez-vous pour acc\u00e9der \u00e0 votre espace IA.",
+    registerSubtitle: "Cr\u00e9ez un compte pour acc\u00e9der \u00e0 votre espace IA.",
 
     email: "Email",
     password: "Mot de passe",
@@ -32,17 +32,17 @@ const translations = {
     signin: "Connexion",
     connecting: "Connexion...",
 
-    createAccount: "Créer un compte",
-    creatingAccount: "Création du compte...",
+    createAccount: "Cr\u00e9er un compte",
+    creatingAccount: "Cr\u00e9ation du compte...",
 
     newHere: "Nouveau ici ?",
-    createAccountLink: "Créer un compte",
+    createAccountLink: "Cr\u00e9er un compte",
 
-    alreadyAccount: "Vous avez déjà un compte ?",
+    alreadyAccount: "Vous avez d\u00e9j\u00e0 un compte ?",
     signInLink: "Se connecter",
 
     accountCreated:
-      "Compte créé avec succès. Vous pouvez maintenant vous connecter.",
+      "Compte cr\u00e9\u00e9 avec succ\u00e8s. Vous pouvez maintenant vous connecter.",
   },
 
   en: {
@@ -122,7 +122,7 @@ const translations = {
     signInLink: "Anmelden",
 
     accountCreated:
-      "Konto erfolgreich erstellt. Sie können sich jetzt anmelden.",
+      "Konto erfolgreich erstellt. Sie kÃƒÆ’Ã†â€™Ãƒâ€šÃ‚Â¶nnen sich jetzt anmelden.",
   },
 };
 
@@ -141,6 +141,7 @@ export default function HomePage() {
   const [password, setPassword] = useState("password123");
 
   const [isRegister, setIsRegister] = useState(false);
+  const [showPassword, setShowPassword] = useState(false);
 
   const [showJson, setShowJson] = useState(false);
 
@@ -394,16 +395,56 @@ export default function HomePage() {
               value={email}
               onChange={(e) => setEmail(e.target.value)}
             />
+            <div className="relative">
+              <input
+                type={showPassword ? "text" : "password"}
+                required
+                minLength={6}
+                className="w-full p-4 pr-14 rounded-2xl bg-black/20 border border-white/10 outline-none focus:border-cyan-400/40 transition"
+                placeholder={t.password}
+                value={password}
+                onChange={(e) => setPassword(e.target.value)}
+              />
 
-            <input
-              type="password"
-              required
-              minLength={6}
-              className="w-full p-4 rounded-2xl bg-black/20 border border-white/10 outline-none focus:border-cyan-400/40 transition"
-              placeholder={t.password}
-              value={password}
-              onChange={(e) => setPassword(e.target.value)}
-            />
+              <button
+                type="button"
+                onClick={() => setShowPassword((current) => !current)}
+                className="absolute right-4 top-1/2 -translate-y-1/2 text-white/60 hover:text-white transition"
+                aria-label={showPassword ? "Passwort ausblenden" : "Passwort anzeigen"}
+              >
+                {showPassword ? (
+                  <svg
+                    width="22"
+                    height="22"
+                    viewBox="0 0 24 24"
+                    fill="none"
+                    stroke="currentColor"
+                    strokeWidth="2"
+                    strokeLinecap="round"
+                    strokeLinejoin="round"
+                  >
+                    <path d="M3 3l18 18" />
+                    <path d="M10.6 10.6a2 2 0 002.8 2.8" />
+                    <path d="M9.9 4.2A10.7 10.7 0 0112 4c5 0 9 4 10 8a11.7 11.7 0 01-2.1 4.1" />
+                    <path d="M6.6 6.6A11.4 11.4 0 002 12c1 4 5 8 10 8a10.7 10.7 0 005.4-1.4" />
+                  </svg>
+                ) : (
+                  <svg
+                    width="22"
+                    height="22"
+                    viewBox="0 0 24 24"
+                    fill="none"
+                    stroke="currentColor"
+                    strokeWidth="2"
+                    strokeLinecap="round"
+                    strokeLinejoin="round"
+                  >
+                    <path d="M2 12s3.5-7 10-7 10 7 10 7-3.5 7-10 7S2 12 2 12z" />
+                    <circle cx="12" cy="12" r="3" />
+                  </svg>
+                )}
+              </button>
+            </div>
 
             <button
               type="submit"
@@ -566,6 +607,16 @@ export default function HomePage() {
               >
                 Ouvrir ERP
               </button>
+
+              <button
+                type="button"
+                onClick={() => {
+                  window.location.href = "/jobs";
+                }}
+                className="px-8 py-4 rounded-2xl border border-purple-400/30 text-purple-300 hover:bg-purple-500/10 transition font-semibold"
+              >
+                Stellenanalyse
+              </button>
             </div>
 
             <h3 className="text-2xl font-bold mb-5">{t.history}</h3>
@@ -674,3 +725,4 @@ export default function HomePage() {
     </main>
   );
 }
+

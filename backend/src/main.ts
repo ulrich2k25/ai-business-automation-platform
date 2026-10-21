@@ -1,4 +1,4 @@
-import { NestFactory } from '@nestjs/core';
+﻿import { NestFactory } from '@nestjs/core';
 import { AppModule } from './app.module';
 
 async function bootstrap() {
@@ -7,6 +7,7 @@ async function bootstrap() {
   app.enableCors({
     origin: [
       'http://localhost:3001',
+      'http://localhost:3004',
       'https://ai-business-automation-platform-swart.vercel.app',
     ],
     methods: 'GET,POST,PUT,PATCH,DELETE,OPTIONS',
