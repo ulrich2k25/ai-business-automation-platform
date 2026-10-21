@@ -10,7 +10,6 @@ export class AiService {
   async analyzeDocument(text: string) {
     const completion = await this.openai.chat.completions.create({
       model: 'gpt-4.1-mini',
-
       messages: [
         {
           role: 'system',
@@ -25,13 +24,6 @@ Your job:
 5. Use field names in English for technical consistency.
 6. Use extracted text values and summaries in the document's original language.
 7. Return ONLY valid JSON.
-
-Important language rules:
-- If the document is in German, summary and extracted text values must be in German.
-- If the document is in French, summary and extracted text values must be in French.
-- If the document is in English, summary and extracted text values must be in English.
-- Do not translate names, companies, addresses, product names, legal terms, or original labels unless necessary.
-- Keep the same business meaning as the original document.
 
 Possible document types:
 - invoice
@@ -65,16 +57,108 @@ Required JSON structure:
 }
           `,
         },
-
         {
           role: 'user',
           content: text,
         },
       ],
-
       response_format: { type: 'json_object' },
     });
 
     return completion.choices[0].message.content;
+  }
+
+  private resolveJobSource(sourceUrl: string): string {
+    const hostname = new URL(sourceUrl).hostname.toLowerCase().replace(/^www\./, '');
+
+    if (hostname.includes('indeed.')) return 'Indeed';
+    if (hostname.includes('stepstone.')) return 'StepStone';
+    if (hostname.includes('linkedin.')) return 'LinkedIn';
+    if (hostname.includes('xing.')) return 'XING';
+
+    return hostname;
+  }
+
+  async analyzeJobPosting(text: string, sourceUrl: string) {
+    const completion = await this.openai.chat.completions.create({
+      model: 'gpt-4.1-mini',
+      messages: [
+        {
+          role: 'system',
+          content: `
+You analyze job advertisements for a job-management application.
+
+Extract only information that is actually present or can be safely inferred from the advertisement.
+Do not invent missing information.
+Return ONLY valid JSON.
+
+Use these exact values when applicable:
+
+employmentType:
+FULL_TIME
+PART_TIME
+INTERNSHIP
+WORKING_STUDENT
+APPRENTICESHIP
+FREELANCE
+TEMPORARY
+OTHER
+
+workMode:
+ON_SITE
+HYBRID
+REMOTE
+
+If a field cannot be determined, use null.
+
+salaryMin and salaryMax must contain numbers only.
+currency must be a 3-letter code such as EUR.
+deadline must use YYYY-MM-DD when clearly available.
+
+Required JSON:
+{
+  "companyName": null,
+  "companyWebsite": null,
+  "industry": null,
+  "companyCity": null,
+  "companyCountry": null,
+  "contactName": null,
+  "contactEmail": null,
+  "contactPhone": null,
+  "jobTitle": null,
+  "jobUrl": null,
+  "location": null,
+  "employmentType": null,
+  "workMode": null,
+  "source": null,
+  "salaryMin": null,
+  "salaryMax": null,
+  "currency": null,
+  "deadline": null,
+  "summary": null,
+  "tasks": [],
+  "requirements": [],
+  "technologies": []
+}
+          `,
+        },
+        {
+          role: 'user',
+          content: `Source URL: ${sourceUrl}\n\nJob advertisement:\n${text}`,
+        },
+      ],
+      response_format: { type: 'json_object' },
+    });
+
+    const content = completion.choices[0].message.content;
+
+    if (!content) {
+      throw new Error('OpenAI returned an empty job analysis.');
+    }
+
+    const result = JSON.parse(content) as Record<string, unknown>;
+    result.jobUrl = sourceUrl;
+
+    return result;
   }
 }

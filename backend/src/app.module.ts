@@ -6,9 +6,10 @@ import { DocumentsModule } from './documents/documents.module';
 import { AiModule } from './ai/ai.module';
 import { AuthModule } from './auth/auth.module';
 import { InvoicesModule } from './invoices/invoices.module';
+import { JobsModule } from './jobs/jobs.module';
 
 @Module({
-  imports: [PrismaModule, DocumentsModule, AiModule, AuthModule, InvoicesModule],
+  imports: [PrismaModule, DocumentsModule, AiModule, AuthModule, InvoicesModule, JobsModule],
   controllers: [AppController],
   providers: [AppService],
 })
